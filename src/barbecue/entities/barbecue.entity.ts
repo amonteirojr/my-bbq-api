@@ -3,11 +3,13 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
 import Participant from 'src/participant/entities/participant.entity';
+import User from 'src/user/entities/user.entity';
 
 @Entity({ name: 'barbecue' })
 class Barbecue extends BaseEntity {
@@ -29,8 +31,16 @@ class Barbecue extends BaseEntity {
   @Column()
   suggestedBeerValue?: number;
 
-  @OneToMany(() => Participant, (participant) => participant.barbecue)
+  @OneToMany(() => Participant, (participant) => participant.barbecue, {
+    cascade: true,
+  })
   participants: Participant[];
+
+  @ManyToOne(() => User, (user) => user.barbecues)
+  user: User;
+
+  @Column()
+  userUuid: string;
 
   @CreateDateColumn()
   createdAt?: Date;

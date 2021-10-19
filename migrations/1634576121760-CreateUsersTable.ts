@@ -1,12 +1,12 @@
-import { MigrationInterface, QueryRunner, Table } from 'typeorm';
+import { MigrationInterface, QueryRunner, Table, TableUnique } from 'typeorm';
 
-export class CreateBarbecuesTable1634070535415 implements MigrationInterface {
+export class CreateUsersTable1634576121760 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
 
     await queryRunner.createTable(
       new Table({
-        name: 'barbecue',
+        name: 'user',
         columns: [
           {
             name: 'uuid',
@@ -16,31 +16,15 @@ export class CreateBarbecuesTable1634070535415 implements MigrationInterface {
             default: 'uuid_generate_v4()',
           },
           {
-            name: 'date',
-            type: 'date',
+            name: 'email',
+            type: 'varchar(50)',
             isNullable: false,
+            isUnique: true,
           },
           {
-            name: 'description',
-            type: 'varchar',
-            isNullable: true,
-          },
-          {
-            name: 'notes',
-            type: 'varchar',
-            isNullable: true,
-          },
-          {
-            name: 'suggestedValue',
-            type: 'numeric',
-            isNullable: true,
-            default: 0,
-          },
-          {
-            name: 'suggestedBeerValue',
-            type: 'numeric',
-            isNullable: true,
-            default: 0,
+            name: 'password',
+            type: 'varchar(255)',
+            isNullable: false,
           },
           {
             type: 'timestamp',
@@ -57,10 +41,16 @@ export class CreateBarbecuesTable1634070535415 implements MigrationInterface {
         ],
       }),
     );
+
+    await queryRunner.createUniqueConstraint(
+      'user',
+      new TableUnique({ columnNames: ['email'], name: 'UK_EMAIL_1' }),
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('barbecue');
+    await queryRunner.dropUniqueConstraint('user', 'UK_EMAIL_1');
+    await queryRunner.dropTable('user');
     await queryRunner.query('DROP EXTENSION "uuid-ossp"');
   }
 }

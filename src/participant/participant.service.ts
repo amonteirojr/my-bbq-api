@@ -3,6 +3,7 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
+import { UpdateBarbecueParticipantsDTO } from 'src/barbecue/barbecue.service';
 import { CodeErrors } from 'src/shared/code-errors.enum';
 import { CreateParticipantDTO } from './dto/create-participant.dto';
 import { UpdateParticipantDTO } from './dto/update-participant.dto';
@@ -25,23 +26,6 @@ export class ParticipantService {
   private readonly logger = new Logger(ParticipantService.name);
 
   constructor(private readonly participantRepository: ParticipantRepository) {}
-
-  async createParticipant(
-    createParticipantDTO: CreateParticipantDTO,
-  ): Promise<Participant> {
-    try {
-      const participant =
-        this.participantRepository.create(createParticipantDTO);
-      return await this.participantRepository.save(participant);
-    } catch (err) {
-      this.logger.error(`Error on create a new participant: ${err}`);
-
-      throw new InternalServerErrorException({
-        message: 'fail to create a new participant',
-        code: CodeErrors.FAIL_TO_CREATE_PARTICIPANT,
-      });
-    }
-  }
 
   async updateParticipant(
     updateParticipantDTO: UpdateParticipantDTO,
@@ -89,33 +73,40 @@ export class ParticipantService {
     }
   }
 
-  // async getParticipantsDetailsData(
-  //   barbecueParticipants: BarbecueParticipants[],
-  // ): Promise<ParticipantsDetailsData[]> {
-  //   try {
-  //     const participantDetails: ParticipantsDetailsData[] = await Promise.all(
-  //       barbecueParticipants.map(async (participant) => {
-  //         const details = await this.participantRepository.findOne({
-  //           uuid: participant.participantUuid,
-  //         });
+  async getParticipantsByBarbecueUuid(
+    barbecueUuid: string,
+  ): Promise<Participant[]> {
+    try {
+      return await this.participantRepository.find({ barbecueUuid });
+    } catch (err) {
+      this.logger.error(`Error on get participants: ${err}`);
 
-  //         return {
-  //           participantUuid: participant.participantUuid,
-  //           name: details.name,
-  //           paid: participant.paid,
-  //           contributionAmount: participant.contributionAmount,
-  //         };
-  //       }),
-  //     );
+      throw new InternalServerErrorException({
+        message: 'fail to get participants',
+        code: CodeErrors.FAIL_TO_GET_PARTICIPANTS,
+      });
+    }
+  }
 
-  //     return participantDetails;
-  //   } catch (err) {
-  //     this.logger.error(`Error on get participants: ${err}`);
+  async updateBarbecueParticipant(
+    participants: UpdateBarbecueParticipantsDTO[],
+    barbecueUuid: string,
+  ): Promise<void> {
+    try {
+      await this.participantRepository.delete({ barbecueUuid });
 
-  //     throw new InternalServerErrorException({
-  //       message: 'fail to get participants',
-  //       code: CodeErrors.FAIL_TO_GET_PARTICIPANTS,
-  //     });
-  //   }
-  // }
+      participants.forEach(
+        (participant) => (participant.barbecueUuid = barbecueUuid),
+      );
+
+      await this.participantRepository.insert(participants);
+    } catch (err) {
+      this.logger.error(`Error on update participants: ${err}`);
+
+      throw new InternalServerErrorException({
+        message: 'fail to update participants',
+        code: CodeErrors.FAIL_TO_UPDATE_PARTICIPANTS,
+      });
+    }
+  }
 }

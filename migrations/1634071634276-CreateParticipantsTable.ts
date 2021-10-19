@@ -81,6 +81,7 @@ export class CreateParticipantsTable1634071634276
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    queryRunner.dropTable('participants');
+    await queryRunner.dropUniqueConstraint('participant', 'UK_PARTICIPANT_1');
+    queryRunner.dropTable('participant');
   }
 }
