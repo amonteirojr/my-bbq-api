@@ -28,6 +28,7 @@ import User from './user/entities/user.entity';
         username: configService.envConfig.typeormUsername,
         password: configService.envConfig.typeormPassword,
         url: process.env.DATABASE_URL,
+        ssl: { rejectUnauthorized: false },
         entities: [Barbecue, Participant, User],
         synchronize: false,
         migrationsRun: true,
